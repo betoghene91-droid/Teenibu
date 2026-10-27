@@ -13,7 +13,10 @@ const BS_KEY = process.env.BASESCAN_KEY || '', PK = process.env.PK || '', PIN = 
 const PRIVATE_RPC = process.env.PRIVATE_RPC || '';
 const FILE = 'memory.json', ORACLE = 'oracle.json';
 
-const CHAINS = { base: { id: 8453, rpc: process.env.BASE_RPC || 'https://mainnet.base.org', scan: 'https://api.basescan.org/api', gt: 'base' } };
+const CHAINS = {
+  base:   { id: 8453, rpc: process.env.BASE_RPC || 'https://mainnet.base.org', scan: 'https://api.basescan.org/api', gt: 'base', type: 'evm' },
+  solana: { gt: 'solana', type: 'svm' },
+};
 const WETH = '0x4200000000000000000000000000000000000006';
 const ROUTER = process.env.ROUTER || '0x4752ba5DBc23f44D87826276BF6Fd6b1C372aD24';
 const ROUTER_ABI = [
@@ -64,13 +67,39 @@ const BASE_W = {
   unguarded_mint: 1.2, unguarded_pause: 0.7, unguarded_withdraw: 1.5, unguarded_initialize: 1.6,
   proxy_uninitialized: 1.4, upgradeable_proxy: 0.6, unverified: 0.5, honeypot: 1.6, unsellable: 1.7,
   high_ownership: 0.9, lp_unlocked: 1.0, dev_rugger: 1.5, deep_liq: 1.0, tight_mcap: 1.0, hot_txns: 0.9,
+  sol_mint_authority: 1.5, sol_freeze_authority: 1.2, sol_lp_unlocked: 1.3,
+  sol_top10: 0.9, sol_transfer_fee: 0.8,
 };
-function load() { try { const d = JSON.parse(fs.readFileSync(FILE, 'utf8')); S = { ...S, ...(d.S || {}) }; M = { ...M, ...(d.M || {}) }; } catch {}
-  S.day = today(); S.alertsToday = 0;
+
+function load() {
+  try {
+    const d = JSON.parse(fs.readFileSync(FILE, 'utf8'));
+    S = { ...S, ...(d.S || {}) };
+    M = { ...M, ...(d.M || {}) };
+  } catch {}
+  S.seen = S.seen || {};
+  M.stats = M.stats || {};
+  M.classBump = M.classBump || {};
+  if (S.day !== today()) { S.day = today(); S.alertsToday = 0; }   // only reset on a new day
+  S.alertsToday = S.alertsToday || 0;
   const cut = now() - 14 * DAY;
-  for (const k of Object.keys(S.seen)) if ((S.seen[k] || 0) < cut) delete S.seen[k]; }
-const save = () => { try { fs.writeFileSync(FILE, JSON.stringify({ S, M }, null, 1)); } catch {} };
-function weight(p) { const st = M.stats[p]; let w = BASE_W[p] ?? 1; if (st && st.n >= 10) w *= Math.max(0.3, Math.min(3, ((st.wins + 1) / (st.n + 2)) * 2)); return w * (M.classBump[p] || 1); }
+  for (const k of Object.keys(S.seen)) if ((S.seen[k] || 0) < cut) delete S.seen[k];
+}
+
+const save = () => {
+  try {
+    const tmp = FILE + '.tmp';
+    fs.writeFileSync(tmp, JSON.stringify({ S, M }, null, 1));
+    fs.renameSync(tmp, FILE);   // atomic, so a crash can't leave a half-written file
+  } catch {}
+};
+
+function weight(p) {
+  const st = M.stats?.[p];
+  let w = BASE_W[p] ?? 1;
+  if (st && st.n >= 10) w *= Math.max(0.3, Math.min(3, ((st.wins + 1) / (st.n + 2)) * 2));
+  return w * (M.classBump?.[p] || 1);
+}
 
 // ── NET ────────────────────────────────────────────────────────────
 async function jget(url, opt, tries = 3) { for (let i = 0; i < tries; i++) { try {
@@ -274,36 +303,60 @@ async function drainHunt() {
 }
 
 // ── SOURCER ────────────────────────────────────────────────────────
+async function scanSVM(addr) {
+  const [g, r] = await Promise.all([
+    jget(`https://api.gopluslabs.io/api/v1/solana/token_security?contract_addresses=${addr}`),
+    jget(`https://api.rugcheck.xyz/v1/tokens/${addr}/report/summary`),
+  ]);
+  const t = Object.values(g?.result || {})[0] || {};
+  const f = { findings: [], svm: true, rug: r?.score ?? null, locked: r?.lpLockedPct ?? null, unguarded: [] };
+  if (t.mintable?.status === '1' || t.mintable?.mint_authority) f.findings.push('sol_mint_authority');
+  if (t.freezable?.status === '1' || t.freezable?.freeze_authority) f.findings.push('sol_freeze_authority');
+  if (t.is_honeypot === '1') f.findings.push('honeypot');
+  if (+(t.top10_holders_rate || 0) > 0.5) f.findings.push('high_ownership');
+  if (r?.lpLockedPct != null && r.lpLockedPct < 50) f.findings.push('sol_lp_unlocked');
+  if ((r?.token?.transferFee?.pct || 0) > 5) f.findings.push('sol_transfer_fee');
+  return f;
+}
+
 async function sourcer() {
   if (S.paused) return 0;
   if (S.day !== today()) { S.day = today(); S.alertsToday = 0; }
-  let fired = 0; const tEnd = Date.now() + 90_000;         // hard 90s budget
-  for (let page = 1; page <= CFG.pages; page++) {
-    const j = await jget(`https://api.geckoterminal.com/api/v2/networks/base/new_pools?page=${page}`);
-    for (const p of j?.data || []) {
-      if (fired >= CFG.maxAlertsPerRun || S.alertsToday >= CFG.maxAlertsPerDay) break;
-      const addr = (p.relationships?.base_token?.data?.id || '').split('_').slice(1).join('_');
-      if (!addr || S.seen[addr]) continue;
-      const liq = +p.attributes.reserve_in_usd || 0, fdv = +(p.attributes.fdv_usd || p.attributes.market_cap_usd) || 0;
-      const tx = (p.attributes.transactions?.h24?.buys || 0) + (p.attributes.transactions?.h24?.sells || 0);
-      const ageH = (now() - new Date(p.attributes.pool_created_at).getTime()) / 3600e3;
-      if (liq < CFG.minLiq || !fdv || fdv > CFG.maxFdv || tx < CFG.minTx || ageH > CFG.maxAgeH) continue;
-      const w = S.watch[addr]; if (!w) { S.watch[addr] = { runs: 1 }; continue; }
-      w.runs++; if (w.runs < CFG.patience) continue;
+  let fired = 0; const tEnd = Date.now() + 90_000;
+  outer:
+  for (const chain of ['base', 'solana']) {
+    for (let page = 1; page <= CFG.pages; page++) {
+      if (Date.now() > tEnd) break outer;
+      const j = await jget(`https://api.geckoterminal.com/api/v2/networks/${chain}/new_pools?page=${page}`);
+      for (const p of j?.data || []) {
+        if (Date.now() > tEnd) break outer;
+        if (fired >= CFG.maxAlertsPerRun || S.alertsToday >= CFG.maxAlertsPerDay) break outer;
+        const addr = (p.relationships?.base_token?.data?.id || '').split('_').slice(1).join('_');
+        if (!addr || S.seen[addr]) continue;
+        const liq = +p.attributes.reserve_in_usd || 0, fdv = +(p.attributes.fdv_usd || p.attributes.market_cap_usd) || 0;
+        const tx = (p.attributes.transactions?.h24?.buys || 0) + (p.attributes.transactions?.h24?.sells || 0);
+        const ageH = (now() - new Date(p.attributes.pool_created_at).getTime()) / 3600e3;
+        if (liq < CFG.minLiq || !fdv || fdv > CFG.maxFdv || tx < CFG.minTx || ageH > CFG.maxAgeH) continue;
+        const w = S.watch[addr]; if (!w) { S.watch[addr] = { runs: 1 }; continue; }
+        w.runs++; if (w.runs < CFG.patience) continue;
 
-      const sec = await securityScan(addr); const sc = securityScore(sec.findings);
-      const mk = marketScore({ liq, fdv, tx, ageH });
-      const v = verdict(mk, sc);
-      S.seen[addr] = now(); delete S.watch[addr];
-      if (v === 'WATCH') continue;
+        const sec = chain === 'base' ? await securityScan(addr) : await scanSVM(addr);
+        const sc = securityScore(sec.findings);
+        const mk = marketScore({ liq, fdv, tx, ageH });
+        const v = verdict(mk, sc);
+        S.seen[addr] = now(); delete S.watch[addr];
+        if (v === 'WATCH') continue;
 
-      S.targets[addr] = { t: now(), chain: 'base', mk, sc: sc.score, verdict: v, liq, entry: +p.attributes.base_token_price_usd || 0, pair: p.attributes.address, maxUp: 1 };
-      fired++; S.alertsToday++;
-      const tag = v === 'TRAP' ? '🪤' : v === 'STRONG' ? '🔥' : '✅';
-      await send(`${tag} ${v} — ${p.attributes.name}\nMarket ${mk}/100 · Security ${sc.score}/100\nLiq $${Math.round(liq).toLocaleString()} · MCap $${Math.round(fdv).toLocaleString()}\n${sc.hits.length ? '⚠ ' + [...new Set(sc.hits)].join(', ') : 'clean'}\nhttps://dexscreener.com/base/${addr}`);
+        S.targets[addr] = { t: now(), chain, mk, sc: sc.score, verdict: v, liq, entry: +p.attributes.base_token_price_usd || 0, pair: p.attributes.address, maxUp: 1 };
+        fired++; S.alertsToday++;
+        const tag = v === 'TRAP' ? '🪤' : v === 'STRONG' ? '🔥' : '✅';
+        await send(`${tag} ${v} [${chain}] — ${p.attributes.name}\nMarket ${mk}/100 · Security ${sc.score}/100\nLiq $${Math.round(liq).toLocaleString()} · MCap $${Math.round(fdv).toLocaleString()}\n${sc.hits.length ? '⚠ ' + [...new Set(sc.hits)].join(', ') : 'clean'}\nhttps://dexscreener.com/${chain}/${addr}`);
 
-      if (AUTO() && v === 'STRONG') { const h = await buyToken(addr, p.attributes.name, mk + sc.score);
-        await send(`⚔️ AUTO-BUY ${p.attributes.name}\n${typeof h === 'string' ? h : h}`); }
+        if (AUTO() && v === 'STRONG' && chain === 'base') {
+          const h = await buyToken(addr, p.attributes.name, mk + sc.score);
+          await send(`⚔️ AUTO-BUY ${p.attributes.name}\n${h}`);
+        }
+      }
     }
   }
   return fired;
@@ -316,30 +369,52 @@ function writeOracle() { const o = { v: '4', ts: now(), signals: Object.entries(
 async function handle() {
   const r = await jget(`https://api.telegram.org/bot${TG_TOKEN}/getUpdates?offset=${S.offset}&timeout=0&allowed_updates=%5B%22message%22%5D`);
   let n = 0;
-  for (const u of r?.result || []) { if (n++ > CFG.maxUpdates) break; S.offset = u.update_id + 1;
+  const ok = () => !PIN || S.authed;
+  for (const u of r?.result || []) {
+    if (n++ >= CFG.maxUpdates) break;
+    S.offset = u.update_id + 1;
     if (String(u.message?.chat?.id) !== String(TG_CHAT)) continue;
     const [cmd, a, b] = (u.message.text || '').trim().split(/\s+/);
-    const ok = () => !PIN || S.authed;
-    if (cmd === '/ping') await send(`🧬 Teenibu v4 · live=${LIVE() ? 'ON' : 'off'} · auto=${AUTO() ? 'ON' : 'off'}`);
-    else if (cmd === '/auth' && a) { S.authed = a === PIN; await send(S.authed ? '🔓 authed' : '❌ wrong pin'); }
-    else if (cmd === '/scan' && a) { const f = await securityScan(a); const s = securityScore(f.findings);
-      await send(`🧬 ${short(a)}\nSecurity ${s.score}/100\n${f.unguarded.length ? '🔓 UNGUARDED: ' + f.unguarded.join(', ') : '🔒 none'}\n${s.hits.length ? '⚠ ' + s.hits.join(', ') : 'clean'}`); }
-    else if (cmd === '/stats') await send(`📊 positions ${Object.keys(S.positions).length} · resolved ${M.outcomes.length} · drained ${M.drained.length}`);
-    else if (cmd === '/positions') await send(Object.entries(S.positions).map(([a, p]) => `${p.name} peak ${p.peak.toFixed(2)}x`).join('\n') || 'none');
-    else if (cmd === '/bal') await send(acct ? `💰 ${formatEther(await getBal(acct.address))} ETH\n${acct.address}` : 'no key');
-    else if (cmd === '/live') { if (a === 'on' && b === 'yes') { S.live = true; await send('⚠️ LIVE'); } else { S.live = false; await send('DRY'); } }
-    else if (cmd === '/auto') { if (!ok()) return await send('🔒 auth'); S.auto = a === 'on'; await send('auto-buy ' + (S.auto ? 'ON' : 'off')); }
-    else if (cmd === '/buy' && a) { if (!ok()) return await send('🔒 auth'); await send('⚔️ ' + await buyToken(a, short(a), 0)); }
-    else if (cmd === '/sell' && a) { if (!ok()) return await send('🔒 auth'); await send('🔴 ' + await sellToken(a, +(b || 100) / 100)); }
-    else if (cmd === '/sweep' && a) { if (!ok() || !acct) return await send('🔒'); const bal = await getBal(acct.address); const buf = parseEther('0.00005');
-      if (bal <= buf) return await send('nothing'); if (b !== 'confirm') return await send(`🧹 ${formatEther(bal - buf)} ETH → ${a}\n/sweep ${a} confirm`);
-      await send('🧹 ' + await sendTx(a, '0x', bal - buf)); }
-    else if (cmd === '/pause') { S.paused = true; await send('⏸'); }
-    else if (cmd === '/resume') { S.paused = false; await send('▶️'); }
-    else if (cmd === '/help') await send(`🧬 TEENIBU v4\n/auth <pin>\n/scan <addr> · /stats · /positions · /bal\n/live on yes · /auto on|off\n/buy <addr> · /sell <addr> [pct] · /sweep <to> confirm\n/pause /resume /ping`);
+    try {
+      if (cmd === '/ping') await send(`🧬 Teenibu v4 · live=${LIVE() ? 'ON' : 'off'} · auto=${AUTO() ? 'ON' : 'off'}`);
+      else if (cmd === '/auth' && a) { S.authed = a === PIN; await send(S.authed ? '🔓 authed' : '❌ wrong pin'); }
+      else if (cmd === '/scan' && a) {
+        if (a === 'sol') {
+          if (!b) { await send('usage: /scan sol <mint>'); continue; }
+          const f = await scanSVM(b); const s = securityScore(f.findings);
+          await send(`🧬 SOL ${short(b)}\nSecurity ${s.score}/100 · rugcheck ${f.rug ?? 'n/a'}\n${f.findings.length ? '⚠ ' + f.findings.join(', ') : 'clean'}`);
+        } else {
+          const f = await securityScan(a); const s = securityScore(f.findings);
+          await send(`🧬 ${short(a)}\nSecurity ${s.score}/100\n${f.findings.length ? '⚠ ' + f.findings.join(', ') : 'clean'}`);
+        }
+      }
+      else if (cmd === '/stats') await send(`📊 positions ${Object.keys(S.positions).length} · resolved ${M.outcomes.length} · drained ${M.drained.length}`);
+      else if (cmd === '/positions') await send(Object.entries(S.positions).map(([a, p]) => `${p.name} peak ${p.peak.toFixed(2)}x`).join('\n') || 'none');
+      else if (cmd === '/bal') await send(acct ? `💰 ${formatEther(await getBal(acct.address))} ETH\n${acct.address}` : 'no key');
+      else if (cmd === '/live') {
+        if (a === 'on' && b === 'yes') { S.live = true; await send('⚠️ LIVE'); } else { S.live = false; await send('DRY'); }
+      }
+      else if (cmd === '/auto') { S.auto = a === 'on'; await send('auto-buy ' + (S.auto ? 'ON' : 'off')); }
+      else if (cmd === '/buy' && a) { if (!ok()) { await send('🔒 auth'); continue; } await send('⚔️ ' + await buyToken(a, short(a), 0)); }
+      else if (cmd === '/sell' && a) {
+        if (!ok()) { await send('🔒 auth'); continue; }
+        const pct = +(b || 100);
+        if (!(pct > 0 && pct <= 100)) { await send('pct must be 1-100'); continue; }
+        await send('🔴 ' + await sellToken(a, pct / 100));
+      }
+      else if (cmd === '/sweep' && a) {
+        if (!ok() || !acct) { await send('🔒'); continue; }
+        const bal = await getBal(acct.address); const buf = parseEther('0.00005');
+        if (bal <= buf) { await send('nothing'); continue; }
+        if (b !== 'confirm') { await send(`🧹 ${formatEther(bal - buf)} ETH → ${a}\n/sweep ${a} confirm`); continue; }
+        await send('🧹 ' + await sendTx(a, '0x', bal - buf));
+      }
+      else if (cmd === '/pause') { S.paused = true; await send('⏸'); }
+      else if (cmd === '/resume') { S.paused = false; await send('▶️'); }
+      else if (cmd === '/help') await send(`🧬 TEENIBU v4\n/auth <pin>\n/scan <addr> · /scan sol <mint> · /stats · /positions · /bal\n/live on yes · /auto on|off\n/buy <addr> · /sell <addr> [pct] · /sweep <to> confirm\n/pause /resume /ping`);
+    } catch (e) { try { await send('⚠️ ' + String(e?.message || e).slice(0, 200)); } catch {} }
   }
 }
-
 // ── MAIN ───────────────────────────────────────────────────────────
 (async () => {
   load();
