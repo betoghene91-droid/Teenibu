@@ -1,0 +1,36 @@
+name: teenibu
+on:
+  schedule: [{ cron: '*/15 * * * *' }]
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: teenibu
+  cancel-in-progress: false
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 1
+      - uses: actions/setup-node@v4
+        with: { node-version: '20' }
+      - run: npm i viem
+      - name: Run
+        run: node teenibu.mjs
+        env:
+          TG_TOKEN:     ${{ secrets.TG_TOKEN }}
+          TG_CHAT_ID:   ${{ secrets.TG_CHAT_ID }}
+          BASESCAN_KEY: ${{ secrets.BASESCAN_KEY }}
+          PK:           ${{ secrets.PK }}
+          AUTH_PIN:     ${{ secrets.AUTH_PIN }}
+      - name: Save memory
+        run: |
+          git config user.name teenibu
+          git config user.email teenibu@bot
+          git add -A
+          git diff --quiet && git diff --cached --quiet || git commit -m "state [skip ci]"
+          git pull --rebase --autostash || true
+          git push --force-with-lease || true
