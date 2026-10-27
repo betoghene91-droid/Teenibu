@@ -1,29 +1,5 @@
 {
- "v": "3.2",
- "ts": 1793101561767,
- "signals": [],
- "patterns": {
-  "unguarded_mint": 1.2,
-  "unguarded_pause": 0.7,
-  "unguarded_withdraw": 1.5,
-  "unguarded_initialize": 1.6,
-  "proxy_uninitialized": 1.4,
-  "upgradeable_proxy": 0.6,
-  "selfdestruct": 0.5,
-  "delegatecall": 0.4,
-  "txorigin_auth": 0.5,
-  "unverified": 0.5,
-  "honeypot": 1.6,
-  "unsellable": 1.7,
-  "high_ownership": 0.9,
-  "lp_unlocked": 1,
-  "lp_pull": 1.3,
-  "dev_rugger": 1.5,
-  "sol_mint_authority": 1.5,
-  "sol_freeze_authority": 1.2,
-  "sol_lp_unlocked": 1.3,
-  "sol_top10": 0.9,
-  "sol_honeypot": 1.6,
-  "sol_transfer_fee": 0.8
- }
+ "v": "4",
+ "ts": 1793104211495,
+ "signals": []
 }

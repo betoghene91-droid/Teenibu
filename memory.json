@@ -1,6 +1,6 @@
 {
  "S": {
-  "offset": 869952397,
+  "offset": 869952398,
   "seen": {
    "0xb200000000000000000000dcccdcbb58b1ee3141": 1793101541062,
    "0x9392ed2daaa7e531340db42f908bb846d67d2cf9": 1793101550276,
@@ -35,13 +35,31 @@
    },
    "0xb200000000000000000000f120ce393bf7b1acff": {
     "runs": 1
+   },
+   "0x26401bcb3fcb6b99c7fce7488b228719989a512d": {
+    "runs": 1
+   },
+   "0xf8ded40e0af06d3dea2ef44e3c0e109ad3595954": {
+    "runs": 1
+   },
+   "0x0fbd0c975aac8cf0e2877ce6ef4ee24d3f0b4a27": {
+    "runs": 1
+   },
+   "0x2b6d8996781c7b3b780ef590deabda05e1d900e6": {
+    "runs": 1
+   },
+   "0xa5d3daef472a8090a108da6a5a51755e3f4426b4": {
+    "runs": 1
    }
   },
   "targets": {},
+  "positions": {},
   "paused": false,
+  "authed": true,
+  "live": false,
+  "auto": false,
   "alertsToday": 0,
   "day": "2026-10-27",
-  "authed": false,
   "exec": {
    "enabled": false,
    "dryRun": true
@@ -50,8 +68,9 @@
  "M": {
   "outcomes": [],
   "deployers": {},
-  "learnedAt": 0,
   "stats": {},
-  "classBump": {}
+  "classBump": {},
+  "drained": [],
+  "learnedAt": 0
  }
 }
