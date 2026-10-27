@@ -1,0 +1,54 @@
+{
+ "S": {
+  "offset": 0,
+  "seen": {},
+  "watch": {
+   "0x86f590912403bd99ce74bdcac880d26fc64b89cf": {
+    "runs": 1
+   },
+   "0xb200000000000000000000dcccdcbb58b1ee3141": {
+    "runs": 1
+   },
+   "0x9392ed2daaa7e531340db42f908bb846d67d2cf9": {
+    "runs": 1
+   },
+   "0x4aa48b412ac7cb943663d844d80245ce648cc7f3": {
+    "runs": 1
+   },
+   "8vqBA4h34KSytCrtWvkHWT7eReeiAeQNDKXr9Pc7pump": {
+    "runs": 1
+   },
+   "7eFJbjGFXMRXPyxzCGF37Qh95BFKoVRWkDMMgE3CKMC": {
+    "runs": 1
+   },
+   "EmXv63afHrzvvSUMGVeBsueknyS5DKX6V8wr6VTKLmhY": {
+    "runs": 1
+   },
+   "BMutH3Eg2fgGUmSjJFiY98hLQxKMv7ce6tmmZy6N3jV6": {
+    "runs": 1
+   },
+   "Ue6ZFrjtijuxd9HgeTXd9Fj2MZyY6kZfBsZyx6Npump": {
+    "runs": 1
+   },
+   "4tCoEWWqBVRACkkrS36knqGjq2DfDRoH8Pzfy8MZEjpb": {
+    "runs": 1
+   }
+  },
+  "targets": {},
+  "paused": false,
+  "alertsToday": 0,
+  "day": "2026-10-27",
+  "authed": false,
+  "exec": {
+   "enabled": false,
+   "dryRun": true
+  }
+ },
+ "M": {
+  "outcomes": [],
+  "deployers": {},
+  "learnedAt": 0,
+  "stats": {},
+  "classBump": {}
+ }
+}
