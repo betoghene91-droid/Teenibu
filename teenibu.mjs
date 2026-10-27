@@ -93,24 +93,70 @@ const EIP1967 = '0x360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382
 const ZERO32 = '0x' + '0'.repeat(64), ZERO20 = '0x' + '0'.repeat(40);
 
 // ── ANALYSIS ───────────────────────────────────────────────────────
-function analyzeBytecode(code) { const c = (code || '').slice(2).toLowerCase();
-  const out = { selectors: [], selfdestruct: false, delegatecall: false, txorigin: false }; let i = 0, pushes = [];
-  while (i < c.length) { const op = parseInt(c.slice(i, i + 2), 16); if (Number.isNaN(op)) break;
-    if (op >= 0x60 && op <= 0x7f) { const n = op - 0x5f; if (n === 4) pushes.push({ v: c.slice(i + 2, i + 10), at: i }); i += 2 + n * 2; continue; }
-    if (op === 0xff) out.selfdestruct = true; if (op === 0xf4) out.delegatecall = true; if (op === 0x32) out.txorigin = true;
-    if (op === 0x14) { for (const p of pushes) if (i - p.at < 40) out.selectors.push('0x' + p.v); pushes = []; } i += 2; }
-  out.selectors = [...new Set(out.selectors)]; return out; }
-async function abiSelectors(addr) { if (!BS_KEY) return null;
+function analyzeBytecode(code, tEnd = Infinity) {
+  const c = (code || '').slice(2).toLowerCase();
+  const out = { selectors: [], selfdestruct: false, delegatecall: false, txorigin: false };
+  let i = 0, pushes = [];
+  while (i < c.length) {
+    const op = parseInt(c.slice(i, i + 2), 16);
+    if (Number.isNaN(op)) break;
+    if (op >= 0x60 && op <= 0x7f) {
+      const n = op - 0x5f;
+      if (n === 4) pushes.push({ v: c.slice(i + 2, i + 10), at: i });
+      i += 2 + n * 2;
+      continue;
+    }
+    if (op === 0xff) out.selfdestruct = true;
+    if (op === 0xf4) out.delegatecall = true;
+    if (op === 0x32) out.txorigin = true;
+    if (op === 0x14) {
+      for (const p of pushes) {
+        if (Date.now() > tEnd) break;
+        if (i - p.at < 40) out.selectors.push('0x' + p.v);
+      }
+      pushes = [];
+    }
+    i += 2;
+  }
+  out.selectors = [...new Set(out.selectors)];
+  return out;
+}
+
+// Tuples must be expanded to "(type,type)" for the selector to match
+const abiType = (t) =>
+  t.type.startsWith('tuple')
+    ? `(${t.components.map(abiType).join(',')})${t.type.slice(5)}`
+    : t.type;
+
+async function abiSelectors(addr) {
+  if (!BS_KEY) return null;
   const j = await jget(`${CHAINS.base.scan}?module=contract&action=getabi&address=${addr}&apikey=${BS_KEY}`);
   if (!j?.result || !String(j.result).startsWith('[')) return null;
-  try { return JSON.parse(j.result).filter(x => x.type === 'function').map(f => keccak256(toHex(`${f.name}(${(f.inputs || []).map(i => i.type).join(',')})`)).slice(0, 10)); } catch { return null; } }
-async function amountsOut(amountIn, path) { const r = await call(ROUTER, encodeFunctionData({ abi: ROUTER_ABI, functionName: 'getAmountsOut', args: [amountIn, path] }));
-  if (!r.ok) return null; try { const d = r.data.slice(2); const n = parseInt(d.slice(64, 128), 16); return BigInt('0x' + d.slice(128, 128 + 64)); } catch { return null; } }
+  try {
+    return JSON.parse(j.result)
+      .filter(x => x.type === 'function')
+      .map(f => keccak256(toHex(`${f.name}(${(f.inputs || []).map(abiType).join(',')})`)).slice(0, 10));
+  } catch { return null; }
+}
+
+async function amountsOut(amountIn, path) {
+  const r = await call(ROUTER, encodeFunctionData({ abi: ROUTER_ABI, functionName: 'getAmountsOut', args: [amountIn, path] }));
+  if (!r.ok) return null;
+  try {
+    const d = r.data.slice(2);
+    const n = parseInt(d.slice(64, 128), 16);          // array length
+    if (!n) return null;
+    const start = 128 + (n - 1) * 64;                  // last element = final output amount
+    return BigInt('0x' + d.slice(start, start + 64));
+  } catch { return null; }
+}
 
 // ── SECURITY SCAN ──────────────────────────────────────────────────
 async function securityScan(addr) {
   const f = { findings: [], selectors: [], unguarded: [], owner: null };
-  const code = await getCode(addr); if (!code || code === '0x') { f.findings.push('no_code'); return f; }
+  const code = await getCode(addr);
+  if (code === null) { f.findings.push('rpc_error'); return f; }
+  if (code === '0x') { f.findings.push('no_code'); return f; }
   const a = analyzeBytecode(code); const abi = await abiSelectors(addr);
   f.selectors = abi || a.selectors;
   if (a.txorigin) f.findings.push('txorigin_auth');
@@ -231,7 +277,7 @@ async function drainHunt() {
 async function sourcer() {
   if (S.paused) return 0;
   if (S.day !== today()) { S.day = today(); S.alertsToday = 0; }
-  let fired = 0;
+  let fired = 0; const tEnd = Date.now() + 90_000;         // hard 90s budget
   for (let page = 1; page <= CFG.pages; page++) {
     const j = await jget(`https://api.geckoterminal.com/api/v2/networks/base/new_pools?page=${page}`);
     for (const p of j?.data || []) {
