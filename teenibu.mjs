@@ -297,11 +297,8 @@ async function handle() {
 // ── MAIN ───────────────────────────────────────────────────────────
 (async () => {
   load();
+  await handle();
+  save();                                   // ← save offset IMMEDIATELY (no replay)
   await sourcer(); await manage(); await drainHunt(); writeOracle(); save();
-  const end = Date.now() + 260_000;            // listen for ~4m20s
-  while (Date.now() < end) {
-    await handle();
-    await sleep(3000);
-  }
-  console.log('teenibu v4 — listening window closed');
+  console.log('teenibu v4 done');
 })().catch(e => { console.error(e); save(); });
