@@ -295,4 +295,13 @@ async function handle() {
 }
 
 // ── MAIN ───────────────────────────────────────────────────────────
-(async () => { load(); await handle(); const n = await sourcer(); await manage(); await drainHunt(); writeOracle(); save(); console.log('teenibu v4 — alerts', n); })().catch(e => { console.error(e); save(); });
+(async () => {
+  load();
+  await sourcer(); await manage(); await drainHunt(); writeOracle(); save();
+  const end = Date.now() + 260_000;            // listen for ~4m20s
+  while (Date.now() < end) {
+    await handle();
+    await sleep(3000);
+  }
+  console.log('teenibu v4 — listening window closed');
+})().catch(e => { console.error(e); save(); });
