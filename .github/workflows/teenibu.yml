@@ -1,4 +1,4 @@
-name: teenibu
+herename: teenibu
 on:
   schedule: [{ cron: '*/5 * * * *' }]
   workflow_dispatch:
@@ -6,10 +6,11 @@ permissions:
   contents: write
 concurrency:
   group: teenibu
-  cancel-in-progress: true
+  cancel-in-progress: false
 jobs:
   run:
     runs-on: ubuntu-latest
+    timeout-minutes: 8
     steps:
       - uses: actions/checkout@v4
         with:
