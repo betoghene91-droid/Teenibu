@@ -281,19 +281,25 @@ async function sellToken(addr, pct) {
 async function manage() {
   for (const [addr, p] of Object.entries(S.positions)) {
     const j = await jget(`https://api.dexscreener.com/latest/dex/tokens/${addr}`);
-    const price = +(j?.pairs?.[0]?.priceUsd || 0); if (!price) continue;
+    const price = +(j?.pairs?.[0]?.priceUsd || 0);
+    if (!price) continue;
     const m = price * 1e18 / Number(p.entry);
     p.peak = Math.max(p.peak, m);
+
     let act = null;
     if (m <= CFG.stopLoss) act = ['STOP-LOSS', 1.0];
-    else if (p.peak >= CFG.trailArm && m <= p.peak * (1 - CFG.trailPct)) act = ['TRAIL', 1.0];
-    else if (m >= CFG.tp2 && !p.took25) { act = ['TP2', 0.25]; p.took25 = true; }
-    else if (m >= CFG.tp1 && !p.took50) act = ['TP1', 0.50]; p.took50 = true;
-    else if (now() - p.ts > CFG.timeExitH * 3600e3 && p.peak < 1.3) act = ['TIME-EXIT', 1.0];
+    if (!act && p.peak >= CFG.trailArm && m <= p.peak * (1 - CFG.trailPct)) act = ['TRAIL', 1.0];
+    if (!act && m >= CFG.tp2 && !p.took25) { act = ['TP2', 0.25]; p.took25 = true; }
+    if (!act && m >= CFG.tp1 && !p.took50) { act = ['TP1', 0.50]; p.took50 = true; }
+    if (!act && now() - p.ts > CFG.timeExitH * 3600e3 && p.peak < 1.3) act = ['TIME-EXIT', 1.0];
+
     if (act) {
       const h = await sellToken(addr, act[1]);
       await send(`${act[1] === 1 ? '🔴' : '🟢'} ${act[0]} ${p.name} @ ${m.toFixed(2)}x\n${typeof h === 'string' ? h : ''}`);
-      if (act[1] === 1) { M.outcomes.push({ addr, mult: +m.toFixed(2), peak: p.peak, ts: now() }); delete S.positions[addr]; }
+      if (act[1] === 1) {
+        M.outcomes.push({ addr, mult: +m.toFixed(2), peak: p.peak, ts: now() });
+        delete S.positions[addr];
+      }
     }
   }
 }
