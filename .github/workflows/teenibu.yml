@@ -1,4 +1,4 @@
-herename: teenibu
+name: teenibu
 on:
   schedule: [{ cron: '*/5 * * * *' }]
   workflow_dispatch:
