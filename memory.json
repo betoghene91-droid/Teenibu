@@ -5539,6 +5539,96 @@
    },
    "2frzoVXpqWZe6rquWJr6XgcfjqQxJMkcjWUiHP32pump": {
     "runs": 1
+   },
+   "0x0068c4b034f7032bdea7675196c1c47fb00d85ec": {
+    "runs": 1
+   },
+   "0x4f3081da34ddf062fb9d6a0f604b65f914391807": {
+    "runs": 1
+   },
+   "0x33b703f113eabc2aa1f0a79533e1a7216b84bda3": {
+    "runs": 1
+   },
+   "0x4cc09467d0a8cc80250a4a808474c2f0d64ffb55": {
+    "runs": 1
+   },
+   "0xfa8a8bdbd0a18a2ff8009926ef8e1570fb4c5428": {
+    "runs": 1
+   },
+   "0x864e60669d8e3fc819acfdd403d99689091c86c4": {
+    "runs": 1
+   },
+   "0x702142b8ffd8a93bcd90018d92b960dcbcc3b04c": {
+    "runs": 1
+   },
+   "0x3166cbbd74b12373954861e3df41138ea07ca3b5": {
+    "runs": 1
+   },
+   "0x307fdd7fc0b27e8a0486c980b81d481af92d0e4f": {
+    "runs": 1
+   },
+   "0xb9f5a77581c9aa4d07664fc4c1d7b78da64f1e44": {
+    "runs": 1
+   },
+   "0x0b4a6f5a9f090593e5a632cbd6f943911a379cb5": {
+    "runs": 1
+   },
+   "0xc4447fa7773577afeb14cf9279830219d994386b": {
+    "runs": 1
+   },
+   "0xb200000000000000000000089314f965c8e76013": {
+    "runs": 1
+   },
+   "0x6d8603dbe87fdf99eafb9aa1b7f64dfcefe62be9": {
+    "runs": 1
+   },
+   "0xb200000000000000000000e4446eaa55819a0751": {
+    "runs": 1
+   },
+   "0xbc3699c288a60a85887fa5304b10b36601eeed32": {
+    "runs": 1
+   },
+   "0x15cf87ca9ea31e1acae22924529bffb3db6c5cbf": {
+    "runs": 1
+   },
+   "0xd6fc9e31fe48032a36e2baa6a283a85524d7e247": {
+    "runs": 1
+   },
+   "0x5068a3a2eede7f64290331f388b826ad58032ec4": {
+    "runs": 1
+   },
+   "o37nDHNNztNfE2jLrwDCeFYj64ikCfBfZL5DZ1Kmoon": {
+    "runs": 1
+   },
+   "G1866mULtEajznsgCv15oAVMjtKD6C2P4zB9Hvg5fJwC": {
+    "runs": 1
+   },
+   "BSyHSbrum18QLcrYF5EDJq8wstZt778ZcJWksRQbpump": {
+    "runs": 1
+   },
+   "CzQgn8LoSR1bvMrTkrvBTM4rdLWzav1iMuAqFT27MTGv": {
+    "runs": 1
+   },
+   "H169FV1xFqihe4TKNJLmFesLin7gpTzPtYTbX68Kpump": {
+    "runs": 1
+   },
+   "78MMLSCqdL5b382ZVqvhKQgofUfAypvWrGMxHcdapump": {
+    "runs": 1
+   },
+   "9kc7CaBH1kt6FZTfVnKw8FuKsE1k6hvwGpb7Y45LnAbM": {
+    "runs": 1
+   },
+   "HuCrYwFpZEncCyN4PSU1gjgyR6umAxkbTYGaHdAbpump": {
+    "runs": 1
+   },
+   "8SXGYuQ36rppdogsWS1xVg5g7xVaJrxRWVuNY55qpump": {
+    "runs": 1
+   },
+   "5BZtwXB9NPre5exaULa8Y5AEs8QHDLtBDYPTB4dE8zL1": {
+    "runs": 1
+   },
+   "Cz5B4R5FL3XEXK1aWApdkxC1UwgX4tsEX7zuGJr3FKbK": {
+    "runs": 1
    }
   },
   "targets": {},
@@ -5548,7 +5638,7 @@
   "live": false,
   "auto": false,
   "alertsToday": 0,
-  "day": "2026-10-31",
+  "day": "2026-11-01",
   "exec": {
    "enabled": false,
    "dryRun": true
