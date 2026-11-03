@@ -450,7 +450,10 @@
    "0xb2000000000000000000002800bae370c38e6801": 1793662743783,
    "0xb200000000000000000000212d4a91a038034c02": 1793662752987,
    "0x9d7ba6708290f45a2789c9fe686d50e9c3fa6401": 1793662762216,
-   "0xb200000000000000000000f05f98cc28f5c1cc01": 1793662771414
+   "0xb200000000000000000000f05f98cc28f5c1cc01": 1793662771414,
+   "HvostJu4pRhvpJxmTpMPKvTRM31pm85qkrDehmBspump": 1793664722814,
+   "37Je1vJepSNHmRScsQcEgBhALcne81GD7k88svv7pump": 1793664723183,
+   "9rdBZEXzhQ4W1u5H9XPtoLxSSu9KYohyxsPsyhYCpump": 1793664723432
   },
   "seenDev": {
    "0x2819e7e557220b619ebad218d48e974327f3a5a6": 1793203363761,
@@ -967,7 +970,8 @@
    "0x30a7c32f3dd1476c8263c83700e7af049bdf5bcf": 1793660793652,
    "0x5347e708203326f589c91d583bdb0cbac9304b00": 1793660802823,
    "0x6f21c0a94b7a4e7ca93322e10816702c24a4292c": 1793662772881,
-   "0xe452c594827281018f1eced9df4f6e9c55240d41": 1793662782123
+   "0xe452c594827281018f1eced9df4f6e9c55240d41": 1793662782123,
+   "0x2d4d953b3469c537c6fb4af9c5b42f34c42ee18d": 1793664733666
   },
   "watch": {
    "0x86f590912403bd99ce74bdcac880d26fc64b89cf": {
@@ -8202,6 +8206,36 @@
    },
    "5ojiQeE16qpTd6AJfHPqR4F6kaTJx8tPMrSRNMTNpump": {
     "runs": 1
+   },
+   "0x90ce3a5a010171e15e79bd004d77bc41c5f7463e": {
+    "runs": 1
+   },
+   "0x84879fcea11f4976c51a8c344aa5152a93f980c9": {
+    "runs": 1
+   },
+   "0x0eca1f6290126a6cf9bbf4136280cc17fb7ab55e": {
+    "runs": 1
+   },
+   "0xb200000000000000000000f862939a4531bc3511": {
+    "runs": 1
+   },
+   "0xf8c09622e05d9d28c637049f47c00d426336e6ca": {
+    "runs": 1
+   },
+   "0xb200000000000000000000b5a94f1e23240b13f2": {
+    "runs": 1
+   },
+   "0xb8a49d0e436512b462365496974f5e3dafaddba3": {
+    "runs": 1
+   },
+   "0xeb32d53e247e87384cc7f6f6468b38a368214ba3": {
+    "runs": 1
+   },
+   "0xb200000000000000000000ef829d60970f4fcd8e": {
+    "runs": 1
+   },
+   "2CK5k7eq4TvJQxDNvD2v9HWPJQfyEERwcN5HsFznagzq": {
+    "runs": 1
    }
   },
   "targets": {},
@@ -8211,7 +8245,7 @@
   "live": false,
   "auto": false,
   "alertsToday": 0,
-  "day": "2026-11-02",
+  "day": "2026-11-03",
   "exec": {
    "enabled": false,
    "dryRun": true
