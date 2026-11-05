@@ -1,5 +1,12 @@
 {
  "v": "4.2",
- "ts": 1793871504566,
- "signals": []
+ "ts": 1793875105079,
+ "signals": [
+  {
+   "addr": "0xe0df594dd89c9bca5cc21f280e53715a7b68e9af",
+   "verdict": "DRAINABLE",
+   "mk": 0,
+   "sc": 0
+  }
+ ]
 }
