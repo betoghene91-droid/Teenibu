@@ -644,7 +644,12 @@
    "0x99867adda0d93b8d5f9ee730e9cea7d6e37b9bb8": 1794008295202,
    "0xa7ae96df2d0a71e148bffde02366f9ad6df3e4ff": 1794008304119,
    "0x59aeca7c760ccf721e9fda57941ccb1d6aea9073": 1794008313029,
-   "0x0f7921fd969160288cfc39fce7a9399bb6a94b5e": 1794008321930
+   "0x0f7921fd969160288cfc39fce7a9399bb6a94b5e": 1794008321930,
+   "2LJEoKUBKpZe6QHSPytjPaqjsJfGop96w1K6CcGxpump": 1794010400197,
+   "6T3cE6FBMceNR9UYgAV7pkCu2RSXufBr28J9ywyPpump": 1794010400648,
+   "F7Sb8NQ9EBQZb8V4LEe9VjhtquaZsAfEWDqwqGDBuTy1": 1794010400820,
+   "6dZhCiMCyXTVFuT6w3nnXUihXa3v6pM7uxjHNutYpump": 1794010400989,
+   "4vP2iEMhq8XQtmWe1g2J7jN3f2UcqL4TyFmDUv8ipump": 1794010401161
   },
   "seenDev": {
    "0x2819e7e557220b619ebad218d48e974327f3a5a6": 1793203363761,
@@ -13237,6 +13242,24 @@
    },
    "0xb200000000000000000000e763d3c48d4753b2de": {
     "runs": 1
+   },
+   "0xb200000000000000000000d1bf6a9fb5855523e6": {
+    "runs": 1
+   },
+   "0x13c38296d5140128d1d67ec3228a4825fcef9e4b": {
+    "runs": 1
+   },
+   "0xb200000000000000000000220bc00449bf8e0a30": {
+    "runs": 1
+   },
+   "0x6e89efa9c2db4a182a93f03480942e6caafbcccc": {
+    "runs": 1
+   },
+   "0xd813d10b75938d114accbce194602379dcef160d": {
+    "runs": 1
+   },
+   "0x36fc95ee7101c282c05f9c11a30858d5f500afd4": {
+    "runs": 1
    }
   },
   "targets": {
@@ -13256,7 +13279,7 @@
   "live": false,
   "auto": false,
   "alertsToday": 0,
-  "day": "2026-11-06",
+  "day": "2026-11-07",
   "exec": {
    "enabled": false,
    "dryRun": true
