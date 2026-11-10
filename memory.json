@@ -15616,6 +15616,39 @@
    },
    "4uEaUDv444qBuZ6hgcQbnmS2jnbL4ndV5qSRRoc7Qk4M": {
     "runs": 1
+   },
+   "0x08f382e05ce01707b1d7514bd147cc3e86bf55b1": {
+    "runs": 1
+   },
+   "0x6a8d577d219dad293944d70cb4c3b47c21fb4ed3": {
+    "runs": 1
+   },
+   "0x414114121a9719fc23d5b446913b2dec5196cccc": {
+    "runs": 1
+   },
+   "DnHjQHwtYx3WcSe5p4w7jB86kh6WfqzFCEqqJR5epump": {
+    "runs": 1
+   },
+   "7M75ruqt3go2oXJDMc6bbdSwRRLzXLdq8Y6zsZzSYScM": {
+    "runs": 1
+   },
+   "CZYH7uGVZ1TAyu8xWvpt6VkxZVzheky3imWy8uXyg183": {
+    "runs": 1
+   },
+   "DMprBYyP6jtHAMFEQs3kWcZfXJUHTP7BfhHFoD9pump": {
+    "runs": 1
+   },
+   "5NKnMKADchLNfFPsAHhgjF8v6Mc3tRooKf5VyouGvoA1": {
+    "runs": 1
+   },
+   "dVtLRADcoSmswp7BrNrGHGwUxSpht7ERQtjMi9rpump": {
+    "runs": 1
+   },
+   "7BGTKca2FLyWmfFDomqiHFiK1t3greMDbo7SNdSGpump": {
+    "runs": 1
+   },
+   "2W4urXjQkwbpzwBwYqKhsdwtPkoiNjyYpTfB62h1pump": {
+    "runs": 1
    }
   },
   "targets": {
@@ -15635,7 +15668,7 @@
   "live": false,
   "auto": false,
   "alertsToday": 0,
-  "day": "2026-11-09",
+  "day": "2026-11-10",
   "exec": {
    "enabled": false,
    "dryRun": true
