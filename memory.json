@@ -2,24 +2,6 @@
  "S": {
   "offset": 869952414,
   "seen": {
-   "0x40803105f9122ba1c6e5eb83a28516dd45c40b07": 1793836847523,
-   "0x8d7dc06b49317c1c30227f1118aae82f2979f7d3": 1793840007193,
-   "0x41c62c98ffad0fba0da4b426bf75dbf75338f1e9": 1793843696968,
-   "ESNwY7rzR2PAbzKywBe7K6nqqZLFBEtSnzKSh7g4pump": 1793843697479,
-   "3tguNYyAG4BWMdvi9sjSP6dNarfKXCJ2GzgQZ6arpump": 1793843697829,
-   "CNAH3utsdXnRk3nFVRxSoRdwjL28hmBeAeFfPutHqgaq": 1793843698061,
-   "0x19219a491125333a23ca65792850fdd1d57cafd6": 1793846569850,
-   "DMjhECZ462tXKJtjWAjWgwogSAWNtGtz8T1qNAkhk2hc": 1793846570346,
-   "6arnYJxSKfmboyRbjoSerHAp2LszuoHg9qDyyUB2pump": 1793846570707,
-   "0x1359b29eef7e07c9849f941fd6b5fea8ea7faee3": 1793849497810,
-   "0x5d2ea0e8b6717630183fdde58a17c78e75e5b362": 1793849506739,
-   "0x2891f6900cd9825555d7d95dfe4465c194ed913f": 1793849515589,
-   "0x15fc2a9d6f05ddf5d2e0f27dd5379fcf45f3ec17": 1793849524472,
-   "0xa70ce8d6ecb7dc2b52eed2af974857985095f4d1": 1793849533453,
-   "0x4945e02818a9d5102e1f459bf39123ed64c4b9d5": 1793849542365,
-   "0xe97d5b791f0ca09e8df215354ddfdf9ee412e93e": 1793849551303,
-   "0x47c4e7d0b200e72c32b8e2ad147cb57f510944c1": 1793849560230,
-   "DM7WgQM4XenVRNqrGWvhRSaGUGHUZtv32BEa7K77yqje": 1793849560558,
    "0xc3516024828041f31b4fd73e5c9521465dc973c1": 1793853003180,
    "B2EWMuy5Jo8o5dkxAbBwpgHEZzohDmRFpQ1wLeFJamH2": 1793853003716,
    "B4uG4UkQPszd6DrfPT1eLBhYrEGYETt7KGUGdbNTpump": 1793853004163,
@@ -258,7 +240,6 @@
    "6dzGpAWbr2JaZgyLF5961jGf1hi8EsoijBJRfUNgBFJ8": 1794816137991
   },
   "seenDev": {
-   "0x2c27b9f861eca1fd774c4932eb5e7a27950b6130": 1793836857275,
    "0x2d208e524f5eb1a6ec022e3a5162fc285bb2e976": 1793856545212,
    "0xc17fade82b5f0db2cdceb52fc66a4bacdc450bbd": 1793856554252,
    "0x9b156ad2d7e6b6feb0a7f862e71fda9e6448129b": 1793856563272,
@@ -15986,6 +15967,45 @@
    },
    "0xff4705812c39570b238123db96cc89e78a985c8c": {
     "runs": 1
+   },
+   "0xb2000000000000000000004e699cc1a9d79ad806": {
+    "runs": 1
+   },
+   "0x3a787fb68432e70567559a457291eb3090be1bb8": {
+    "runs": 1
+   },
+   "0x962ecbb2827b16516b54a93633757e39478fcccc": {
+    "runs": 1
+   },
+   "0x4fa9e91939b09d0b6e90eefc8e5111e0363c9cc2": {
+    "runs": 1
+   },
+   "0xb200000000000000000000be25590bfd5e5f131a": {
+    "runs": 1
+   },
+   "0x3554d4d3811460beceb8aebdf5848cc4571bb6dd": {
+    "runs": 1
+   },
+   "0x65132a5a7783003c0a6063daa011e6028ac246b3": {
+    "runs": 1
+   },
+   "0xf259d66c38a9f623bf489c719c2ef8cb2e7f2773": {
+    "runs": 1
+   },
+   "0xd59e6d8b1d2fa229d907d4a5a20d9ed8f2d2375a": {
+    "runs": 1
+   },
+   "0x66cecc3dffd5408fbd537f67fc06b1cffa211f85": {
+    "runs": 1
+   },
+   "0x26e4a8bbb4e04c157a1f62d587560960dee1afc7": {
+    "runs": 1
+   },
+   "0x98af6e55dae6b704f2be848bffc3cc448820d12c": {
+    "runs": 1
+   },
+   "0x8c19eaf3da7c01134c3b8e32dea9a78c89e9bda7": {
+    "runs": 1
    }
   },
   "targets": {
@@ -16005,7 +16025,7 @@
   "live": false,
   "auto": false,
   "alertsToday": 0,
-  "day": "2026-11-18",
+  "day": "2026-11-19",
   "exec": {
    "enabled": false,
    "dryRun": true
