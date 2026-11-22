@@ -2,18 +2,6 @@
  "S": {
   "offset": 869952414,
   "seen": {
-   "0xeb17959bc178558dbcc4eab86c72b49160a319d2": 1794086829657,
-   "0xbe5b3f90dfa1ad912336a3b5b16cf88bc46e0748": 1794086838827,
-   "3xPMCbiGyhgzxx1mz8iELZWZ4CXEMQEtzk7xkbtLpump": 1794086839316,
-   "7S42gk5dxMJSj1PMN8xfo5G3e2xHAZdUaZugNSsEpump": 1794086839718,
-   "58MuHQjdzn6k7TvbYzQFGjPC1W1cyUy65c4Upj3D1p8R": 1794088820960,
-   "9qdGkAvusm76Xk5SfGW5yKVkDmsfgRxWH3nP8RybLend": 1794088821403,
-   "CwyC8i95LLm548cyWzgD5eoqPahTMVndty2dzKYvpump": 1794088821567,
-   "0xf561c655d841a715fa1ab73e8d33225558e5cba3": 1794090659821,
-   "4MhvntnpTp5wH5naU7p1mRonKXdR7kbLCqbX3R23Cvxn": 1794090661865,
-   "9sD3ML4Yci4vWmRt8gHQc4dG75xsRuBrZCeqj17wpump": 1794092763993,
-   "3GtziTFB4DUpyGasUCqkKBgQF21aLEJrDST54djcWYTT": 1794092764456,
-   "EKEF18SsMUzVAp5nnD97V2TPhnxE7HxhPgidMNT1pump": 1794092764623,
    "0x2d7a2f090f58e4a52c0dfb4edbf17e47f980be49": 1794099987038,
    "0xb091e04762f52666633d3eddfe9b07caf5cc901f": 1794099996522,
    "0xa10af5bbec94d897efc3a9973763df1fbb051499": 1794100005886,
@@ -89,8 +77,6 @@
    "93JS6pxVac2kmF7gADNPzRigvgeHaaFbE9vo2vn1zGj6": 1795294623065
   },
   "seenDev": {
-   "0xb0937fbd71fd8c25069f2c9ba3e463e5f1839524": 1794086849582,
-   "0x8af0c88a805af77e3cba46e53a7d9b544f6be7a0": 1794096591121,
    "0xb9bca0fec3c7a7ecfecc4ee100f2955266b00897": 1794106297123,
    "0xddfc45c9297b12e71233f98f7a904679389bc63b": 1794106306083,
    "0x541923acb6d2125f6786d50871ce07ba3d3ef507": 1794115179116,
@@ -16151,6 +16137,81 @@
    },
    "3cWpFQ379wDLBKZsE2apr3AYD5Nzh2BuLg5UBfYxpump": {
     "runs": 1
+   },
+   "0xb200000000000000000000b0264cde259d2c48d1": {
+    "runs": 1
+   },
+   "0xd89a22b5c75af0c46d0361f9ee9498d3591d2fb4": {
+    "runs": 1
+   },
+   "0xb20000000000000000000004660096514f30d652": {
+    "runs": 1
+   },
+   "0x15459aa48b75c99e7b29198b3f8c97f477e5e862": {
+    "runs": 1
+   },
+   "0xb200000000000000000000a9b60146ca8d7a8858": {
+    "runs": 1
+   },
+   "0x644a1fd9faf98b8ddb9ca7f1aedb7e0c067cec2f": {
+    "runs": 1
+   },
+   "0xdf7b11bf5b3df76b679ea3b23daf25e1f280382d": {
+    "runs": 1
+   },
+   "0x40babc929ae78a54725c1a364711410e93695509": {
+    "runs": 1
+   },
+   "0xc987a4bf9273bc1e45189355556dc2a45e7675e2": {
+    "runs": 1
+   },
+   "0xb200000000000000000000845ebae35080f5f1ec": {
+    "runs": 1
+   },
+   "0x85b7c02e5084492b457b550cbeb409ad3ce11e16": {
+    "runs": 1
+   },
+   "0xf67b110ddfeda88582c1bce7d49691803a67fb32": {
+    "runs": 1
+   },
+   "0xb9a526507f077dbcb18e14253ac2535b87b04db5": {
+    "runs": 1
+   },
+   "0x48f88f02fdc8c16cb09a41e9582fe4eed25b7e4a": {
+    "runs": 1
+   },
+   "0xa919d8440c920c29ee8dfdb0a0f100c231c00de6": {
+    "runs": 1
+   },
+   "0x5b29dc22be6e2134271c7fd7024a8edc1a1a833f": {
+    "runs": 1
+   },
+   "0x676409a8ab7c14b457006f0497072ec1b50a539e": {
+    "runs": 1
+   },
+   "0xedcad749544a4c230654038a15a8f32ff51fa0ec": {
+    "runs": 1
+   },
+   "0x26fcdb49a627ce1955d7f10cda3aae3d96c1f8dd": {
+    "runs": 1
+   },
+   "0xd787ee4317f17e355c362046b8546a6c7a0020d7": {
+    "runs": 1
+   },
+   "AFbt4okzSfYRF1RRm4Zodvka8YdHxUGNAXpoj6L98GFC": {
+    "runs": 1
+   },
+   "J9sqET3ZHzwaLMjNQS2K2BWSUbowKGNKNknh54gbXQzc": {
+    "runs": 1
+   },
+   "Bz5HrLZ7hXPLSWzFb2mYhUJg6BYbjjgAqufQywpGNRzd": {
+    "runs": 1
+   },
+   "FsdsjrUR82zE6FiwRTa6Z4Jhzn35wUrzNxbkxJnjpump": {
+    "runs": 1
+   },
+   "5zT9wRJdGJP34oGK3v2SVpDCPEURgVtjQkrs65ZEaFeH": {
+    "runs": 1
    }
   },
   "targets": {
@@ -16170,7 +16231,7 @@
   "live": false,
   "auto": false,
   "alertsToday": 0,
-  "day": "2026-11-21",
+  "day": "2026-11-22",
   "exec": {
    "enabled": false,
    "dryRun": true
