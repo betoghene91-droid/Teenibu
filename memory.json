@@ -46,7 +46,8 @@
    "BZMZ9HKnh4hhrKBWCm1eHDXHi2xE3ftxXhLenARJZFw9": 1795274561199,
    "7NJpfwDP7ZcQnaytN6YgcXzwZu4pY7ih21NXxxovV8cE": 1795294622447,
    "BEibcQvP4B9NcrhZCPwknpFnDqpGQrqq8kdxaQo8PLQo": 1795294622868,
-   "93JS6pxVac2kmF7gADNPzRigvgeHaaFbE9vo2vn1zGj6": 1795294623065
+   "93JS6pxVac2kmF7gADNPzRigvgeHaaFbE9vo2vn1zGj6": 1795294623065,
+   "DWMMKmaF7Ckr5g22FCnjoq8G8bwufV2Y8DRk1NuY1TDH": 1795398220080
   },
   "seenDev": {
    "0xb52b547729e13dba03408ca0b732be192a4bfd3a": 1794306157943,
@@ -64,7 +65,8 @@
    "0x1c03567a6e380c67e9c5b606ffe50be5eb199795": 1795245251274,
    "0xd6504fc359c96c059ea04065769753a158e1bc33": 1795274570925,
    "0x8cac0cbd5059b47d4b47c4da835d827b1a1cf29a": 1795332806592,
-   "0x024736bd4c612e05bad515211197bf38129a85f4": 1795361820287
+   "0x024736bd4c612e05bad515211197bf38129a85f4": 1795361820287,
+   "0xa140fdc7209be34f66ca8bb44043bd16063b2826": 1795398230015
   },
   "watch": {
    "0x86f590912403bd99ce74bdcac880d26fc64b89cf": {
@@ -16335,6 +16337,45 @@
    },
    "FxsrxEUVp479WEpC25qJ6pkGAcYdVVyV8LG6wUuepump": {
     "runs": 1
+   },
+   "0x3ee2705e47d527be75f33797ed30f277f85d58ef": {
+    "runs": 1
+   },
+   "0x36b2e03e3d814c37be2b83664daec5f01a02d10f": {
+    "runs": 1
+   },
+   "0xb2000000000000000000005da78440e85df395f8": {
+    "runs": 1
+   },
+   "0xbd7571c5e8f703f9cab6eb8bad74a487da06455d": {
+    "runs": 1
+   },
+   "0x5628044500afeeb9b24f41cf8f81cc9df8bb0645": {
+    "runs": 1
+   },
+   "0xb200000000000000000000aad4138e2453b69233": {
+    "runs": 1
+   },
+   "0x722d1e7b0b38a9c53420ae7e112cfb569d1094b9": {
+    "runs": 1
+   },
+   "0xfd56847c3dd1e95b68fe22038cc376e4045c0ba1": {
+    "runs": 1
+   },
+   "0x607d176929a66d3aa4dc882f9de25cb6a774d34d": {
+    "runs": 1
+   },
+   "5ZYK25f3VDd35Dd8QxS6Jhkyy82YbtAserBCgdEfbZB8": {
+    "runs": 1
+   },
+   "BAJLcCxrGh78yaY8k4BBD8dpN4P4pdDpHdgpLdpHrKR4": {
+    "runs": 1
+   },
+   "5t7JkStfPndRXx7C8PAA4GF8LVgW9sfE7vKCZP79pump": {
+    "runs": 1
+   },
+   "AiG92hWp4Cb1Q9u23iggGX9RXGvYNUZsyrc5KxVgpump": {
+    "runs": 1
    }
   },
   "targets": {
@@ -16354,7 +16395,7 @@
   "live": false,
   "auto": false,
   "alertsToday": 0,
-  "day": "2026-11-22",
+  "day": "2026-11-23",
   "exec": {
    "enabled": false,
    "dryRun": true
